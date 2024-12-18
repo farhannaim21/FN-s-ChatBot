@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FN's AI</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="chat-container">
+        <h1>FN's AI Chatbot</h1>
+        <div id="chat-box"></div>
+        <div class="input-container">
+            <input id="user-input" type="text" placeholder="Type your message..." autocomplete="off">
+            <button id="send-btn">Send</button>
+        </div>
+    </div>
+
+    <script>
+        const chatBox = document.getElementById("chat-box");
+        const userInput = document.getElementById("user-input");
+        const sendButton = document.getElementById("send-btn");
+
+        // Function to append messages to the chatbox
+        function appendMessage(role, message) {
+            const messageDiv = document.createElement("div");
+            messageDiv.className = role === "user" ? "user-message" : "ai-response";
+            messageDiv.textContent = message;
+            chatBox.appendChild(messageDiv);
+            chatBox.scrollTop = chatBox.scrollHeight; // Auto-scroll to the bottom
+        }
+
+        // Function to send user input to the server
+        async function sendMessage() {
+            const userMessage = userInput.value.trim();
+            if (!userMessage) return;
+
+            // Append the user's message
+            appendMessage("user", userMessage);
+            userInput.value = "";
+
+            try {
+                const response = await fetch("/chat", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ message: userMessage }),
+                });
+
+                const data = await response.json();
+                appendMessage("ai", data.response || "No response received.");
+            } catch (error) {
+                appendMessage("ai", "An error occurred while connecting to the server.");
+            }
+        }
+
+        // Send message on button click
+        sendButton.addEventListener("click", sendMessage);
+
+        // Send message on "Enter" key press
+        userInput.addEventListener("keypress", (e) => {
+            if (e.key === "Enter") {
+                sendMessage();
+            }
+        });
+    </script>
+</body>
+</html>
